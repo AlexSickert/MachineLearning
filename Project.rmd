@@ -1,31 +1,21 @@
 ---
-title: "PracticalMachineLearningProject"
+title: "Practical Machine Learning Project"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(randomForest)
+
+
 ```
 
-## R Markdown
+## Intruduction
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Load Data
 
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
 ```{}
 
@@ -35,21 +25,53 @@ train_data <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-
 summary(train_data)
 head(train_data)
 
+```
+
+## Clean Data
+
+
+```{}
+
 colnames(train_data)
 
 train_data_feature_set_columns <- colnames(train_data[colSums(is.na(train_data)) == 0])[-(1:7)]
 
 model_data <- train_data[train_data_feature_set_columns]
 
+
+```
+
+## Chosing approach 
+
+There are various approaches how to create prediction models. For this project I use random forest. Because it tends to be very accurate. On the other hand it is slow. But speed it not a critical factor for this assignment. 
+
+## Create partitions
+
+First I split the data in a training and test data set. 
+
+```{}
+
 partition <- createDataPartition(y=model_data$classe, p=0.7, list=FALSE )
 training <- model_data[partition,]
 testing <- model_data[-partition,]
 
-modFit = train(classe~ ., data=training, method="rf", prox=TRUE )
 
 ```
 
-now predicting
+Then I create the prediction model using the training data set. This step takes a lot of time for calulation. On my computer more than 1 hour. 
+
+```{}
+
+modFit <- randomForest(classe ~ .,   data=training)
+print(modFit) # view results 
+importance(modFit) # importance of each predictor
+
+
+```
+
+## Create predictions and evaluate outcome
+
+Now we apply the model to the train and test data and create a confustion matrix which allows us understanding who well the model predicts the classificaton. 
 
 ```{}
 
@@ -66,9 +88,23 @@ confusionMatrix(predictions2,testing$classe)
 
 
 
+## Apply the model to the test data and process it with provided code
 
+Finally I use the model for predicting the classes of the dataset that was provided. I also use a code nittped provided by Coursera. 
 
-https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+```{}
 
+quizz_data <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", header=TRUE, sep=",", na.strings=c("NA",""))
 
+train_data_feature_set_columns
 
+quizz_data <- quizz_data[train_data_feature_set_columns]
+quizz_data <- quizz_data[, -classe]
+
+result <- predict(modFit, newdata=quizz_data)
+
+result
+
+```
+
+After submitting the result to the quizz it turns out at the result is correct.
