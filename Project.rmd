@@ -1,0 +1,74 @@
+---
+title: "PracticalMachineLearningProject"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{}
+
+train_data <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", header=TRUE, sep=",", na.strings=c("NA",""))
+
+
+summary(train_data)
+head(train_data)
+
+colnames(train_data)
+
+train_data_feature_set_columns <- colnames(train_data[colSums(is.na(train_data)) == 0])[-(1:7)]
+
+model_data <- train_data[train_data_feature_set_columns]
+
+partition <- createDataPartition(y=model_data$classe, p=0.7, list=FALSE )
+training <- model_data[partition,]
+testing <- model_data[-partition,]
+
+modFit = train(classe~ ., data=training, method="rf", prox=TRUE )
+
+```
+
+now predicting
+
+```{}
+
+
+predictions1 <- predict(modFit, newdata=training)
+confusionMatrix(predictions1,training$classe)
+
+
+predictions2 <- predict(modFit, newdata=testing)
+confusionMatrix(predictions2,testing$classe)
+
+
+```
+
+
+
+
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+
+
