@@ -1,11 +1,18 @@
 ---
-title: "Practical Machine Learning Project"
+title: "Practical Machine Learning Course Project"
+author: "Alex Sickert"
+date: "14 July 2016"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 
+
+
+```{r include=FALSE, echo=TRUE, message=FALSE}
+
+#knitr::opts_chunk$set(echo = TRUE)
+
+library(caret)
 library(randomForest)
 
 
@@ -17,7 +24,7 @@ library(randomForest)
 ## Load Data
 
 
-```{}
+```{r}
 
 train_data <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", header=TRUE, sep=",", na.strings=c("NA",""))
 
@@ -29,10 +36,11 @@ head(train_data)
 
 ## Clean Data
 
+Many columns contain NA data. We remove these columns to have a feature set that is more meaningful.
 
-```{}
+```{r}
 
-colnames(train_data)
+#colnames(train_data)
 
 train_data_feature_set_columns <- colnames(train_data[colSums(is.na(train_data)) == 0])[-(1:7)]
 
@@ -49,7 +57,7 @@ There are various approaches how to create prediction models. For this project I
 
 First I split the data in a training and test data set. 
 
-```{}
+```{r}
 
 partition <- createDataPartition(y=model_data$classe, p=0.7, list=FALSE )
 training <- model_data[partition,]
@@ -60,10 +68,10 @@ testing <- model_data[-partition,]
 
 Then I create the prediction model using the training data set. This step takes a lot of time for calulation. On my computer more than 1 hour. 
 
-```{}
+```{r}
 
 modFit <- randomForest(classe ~ .,   data=training)
-print(modFit) # view results 
+
 importance(modFit) # importance of each predictor
 
 
@@ -73,12 +81,20 @@ importance(modFit) # importance of each predictor
 
 Now we apply the model to the train and test data and create a confustion matrix which allows us understanding who well the model predicts the classificaton. 
 
-```{}
+First we apply the model to the training dataset. Here it should work verz accuratly. But it could be subject to overfitting. 
+
+```{r}
 
 
 predictions1 <- predict(modFit, newdata=training)
 confusionMatrix(predictions1,training$classe)
 
+```
+
+
+As a next step we apply it to the testing set. The prediction should be a bit worse but as the prediction with the training set is often subject to overfitting. 
+
+```{r}
 
 predictions2 <- predict(modFit, newdata=testing)
 confusionMatrix(predictions2,testing$classe)
@@ -92,7 +108,7 @@ confusionMatrix(predictions2,testing$classe)
 
 Finally I use the model for predicting the classes of the dataset that was provided. I also use a code nittped provided by Coursera. 
 
-```{}
+```{r}
 
 quizz_data <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", header=TRUE, sep=",", na.strings=c("NA",""))
 
