@@ -5,37 +5,41 @@ date: "14 July 2016"
 output: html_document
 ---
 
+In this assignment I analyze data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants.The goal of the project is to predict the manner in which the participants did the exercise.
 
+In order to do this assignment I use the libraries "caret" and "randomForest".
 
 
 ```{r include=FALSE, echo=TRUE, message=FALSE}
 
-#knitr::opts_chunk$set(echo = TRUE)
-
+library(knitr)
 library(caret)
 library(randomForest)
-
+knitr::opts_chunk$set(echo = TRUE)
 
 ```
 
-## Intruduction
+## Introduction
 
+Training and test data are provided via a link to a website where CSV files are stored. The test data is then used to predict the class a certain observation belongs to. Overall for 20 cases. Subsequently this result is used on the Coursera website in a quizz. 
 
 ## Load Data
 
+We load the data by downloading it from the website and parse it as CSV. We directly declare "NA" Strings as NA vlaues. 
 
 ```{r}
 
 train_data <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", header=TRUE, sep=",", na.strings=c("NA",""))
 
 
-summary(train_data)
-head(train_data)
+#summary(train_data)
+#head(train_data)
 
 ```
 
 ## Clean Data
 
+After a some exploratory analysis of the dataset I realized that many columns do not contain valuable information. 
 Many columns contain NA data. We remove these columns to have a feature set that is more meaningful.
 
 ```{r}
@@ -51,9 +55,10 @@ model_data <- train_data[train_data_feature_set_columns]
 
 ## Chosing approach 
 
-There are various approaches how to create prediction models. For this project I use random forest. Because it tends to be very accurate. On the other hand it is slow. But speed it not a critical factor for this assignment. 
+There are various approaches how to create prediction models for performing classification. For this project I use random forest. Because it tends to be very accurate. I also tried out simpler trees. However, the execution time for the code was unacceptably long. And only the code using the randomForest package had short execution time. Therefore I continued using randomforest.
 
 ## Create partitions
+
 
 First I split the data in a training and test data set. 
 
@@ -72,7 +77,24 @@ Then I create the prediction model using the training data set. This step takes 
 
 modFit <- randomForest(classe ~ .,   data=training)
 
-importance(modFit) # importance of each predictor
+```
+
+I wanted to understand how the tree approximately looks like and how accurate it preditcts. Therefore I obtained certain data on it:
+
+```{r}
+modFit
+
+```
+
+We learn from this table that the model uses 500 trees and the error rate is estimated 0.59% which I consider very good. 
+
+
+Then I want to know which variable is most important to predict the class. I plot them in a graph.
+
+```{r}
+
+#importance(modFit) # importance of each predictor
+varImpPlot(modFit)
 
 
 ```
@@ -92,13 +114,13 @@ confusionMatrix(predictions1,training$classe)
 ```
 
 
-As a next step we apply it to the testing set. The prediction should be a bit worse but as the prediction with the training set is often subject to overfitting. 
+As a next step we apply it to the testing set. The prediction should be a bit worse as the prediction with the training set is often subject to overfitting. 
 
 ```{r}
 
 predictions2 <- predict(modFit, newdata=testing)
 confusionMatrix(predictions2,testing$classe)
-
+table(predictions2, testing$classe)
 
 ```
 
@@ -106,7 +128,7 @@ confusionMatrix(predictions2,testing$classe)
 
 ## Apply the model to the test data and process it with provided code
 
-Finally I use the model for predicting the classes of the dataset that was provided. I also use a code nittped provided by Coursera. 
+Finally I use the model for predicting the classes of the dataset that was provided. 
 
 ```{r}
 
@@ -114,15 +136,14 @@ quizz_data <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-
 
 #head(quizz_data)
 
-train_data_feature_set_columns
-
-#quizz_data <- quizz_data[train_data_feature_set_columns]
-#quizz_data <- quizz_data[, -classe]
+#train_data_feature_set_columns
 
 result <- predict(modFit, newdata=quizz_data)
 
 result
 
 ```
+
+## Conclusion
 
 After submitting the result to the quizz it turns out at the result is correct.
